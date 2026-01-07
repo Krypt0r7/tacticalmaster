@@ -41,6 +41,8 @@ const Pitch: React.FC<PitchProps> = ({
   } | null>(null);
 
   const [drawingLine, setDrawingLine] = useState<{ start: Position; end: Position; type: LineType } | null>(null);
+  const [hoveredNoteId, setHoveredNoteId] = useState<string | null>(null);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
   // Helper to convert mouse/touch event to percentage coordinates
   const getCoordinates = useCallback((clientX: number, clientY: number) => {
@@ -239,6 +241,22 @@ const Pitch: React.FC<PitchProps> = ({
     setLines(prev => prev.filter(line => line.id !== id));
     setSelection(null);
     setTimeout(onActionComplete, 0);
+  };
+
+  const handleNoteTextChange = (id: string, text: string) => {
+    setItems(prev => prev.map(item => 
+      item.id === id ? { ...item, text } : item
+    ));
+  };
+
+  const handleNoteBlur = (id: string) => {
+    setEditingNoteId(null);
+    onActionComplete();
+  };
+
+  const handleNoteDoubleClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setEditingNoteId(id);
   };
 
   const renderPitchMarkings = () => {
@@ -461,6 +479,84 @@ const Pitch: React.FC<PitchProps> = ({
 
           const width = config.width || config.defaultSize;
           const height = config.height || config.defaultSize;
+
+          // Special rendering for NOTE type
+          if (item.type === ItemType.NOTE) {
+            const isHovered = hoveredNoteId === item.id;
+            const isEditing = editingNoteId === item.id;
+            const isExpanded = isHovered || isSelected || isEditing;
+            const noteText = item.text || '';
+            const placeholderText = 'Add note...';
+
+            return (
+              <div
+                key={item.id}
+                onPointerDown={(e) => handleItemPointerDown(e, item.id, item.pos)}
+                onMouseEnter={() => setHoveredNoteId(item.id)}
+                onMouseLeave={() => setHoveredNoteId(null)}
+                onDoubleClick={(e) => handleNoteDoubleClick(e, item.id)}
+                className={`absolute touch-none transition-all duration-200 ${isSelected ? 'z-50' : 'z-20'} ${activeTool === 'cursor' ? 'cursor-grab active:cursor-grabbing' : 'pointer-events-none'}`}
+                style={{
+                  left: `${item.pos.x}%`,
+                  top: `${item.pos.y}%`,
+                  transform: `translate(-50%, -50%) rotate(${item.rotation}deg)`,
+                }}
+              >
+                {/* Context Menu for Selected Note */}
+                {isSelected && activeTool === 'cursor' && !isEditing && (
+                  <div 
+                    className="absolute -top-10 left-1/2 -translate-x-1/2 flex gap-1 bg-gray-800 rounded-lg p-1 shadow-lg pointer-events-auto z-50"
+                    style={{ transform: `translateX(-50%) rotate(${-item.rotation}deg)` }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    <button onClick={(e) => handleRotate(e, item.id)} className="p-1 hover:bg-gray-700 rounded text-white" title="Rotate">
+                      <RotateCw size={14} />
+                    </button>
+                    <button onClick={(e) => handleDeleteItem(e, item.id)} className="p-1 hover:bg-red-900 rounded text-red-400" title="Delete">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Note Content */}
+                <div 
+                  className={`transition-all duration-200 rounded-lg shadow-lg border-2 ${
+                    isSelected ? 'border-blue-400 ring-2 ring-blue-300' : 'border-amber-300'
+                  } bg-amber-100`}
+                  style={{
+                    width: isExpanded ? '160px' : '80px',
+                    maxWidth: isExpanded ? '200px' : '80px',
+                  }}
+                >
+                  {isEditing ? (
+                    <div className="p-2">
+                      <textarea
+                        autoFocus
+                        value={item.text || ''}
+                        onChange={(e) => handleNoteTextChange(item.id, e.target.value)}
+                        onBlur={() => handleNoteBlur(item.id)}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className="w-full min-h-[60px] text-xs text-amber-900 bg-transparent border-none focus:ring-0 resize-none p-0 placeholder-amber-600"
+                        placeholder="Add your note..."
+                      />
+                    </div>
+                  ) : isExpanded ? (
+                    <div className="p-2">
+                      <p className="text-xs text-amber-900 whitespace-pre-wrap break-words">
+                        {noteText || placeholderText}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-1.5">
+                      <p className="text-[10px] text-amber-800 truncate leading-tight">
+                        {noteText || placeholderText}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
 
           return (
             <div

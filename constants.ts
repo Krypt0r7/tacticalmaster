@@ -1,13 +1,12 @@
 import { ItemType, LineType } from './types';
 import { 
   User, 
-  Shield, 
-  CircleDot, 
-  Triangle, 
-  Goal, 
-  Activity,
+  CircleDot,
+  Triangle,
+  Goal,
   UserCircle,
-  AlignJustify
+  AlignJustify,
+  StickyNote
 } from 'lucide-react';
 
 export const FIELD_ASPECT_RATIO = 1.5; // Standard pitch ratio approx
@@ -63,6 +62,13 @@ export const ITEM_CONFIG = {
     defaultSize: 40, // Fallback
     width: 30,
     height: 120
+  },
+  [ItemType.NOTE]: {
+    label: 'Note',
+    icon: StickyNote,
+    color: 'bg-amber-200',
+    textColor: 'text-amber-900',
+    defaultSize: 28,
   }
 };
 

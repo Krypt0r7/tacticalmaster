@@ -5,7 +5,8 @@ export enum ItemType {
   BALL = 'BALL',
   CONE = 'CONE',
   GOAL = 'GOAL',
-  LADDER = 'LADDER'
+  LADDER = 'LADDER',
+  NOTE = 'NOTE'
 }
 
 export enum LineType {
@@ -32,6 +33,7 @@ export interface TacticalItem {
   pos: Position;
   label?: string; // Jersey number or name
   rotation: number; // Degrees
+  text?: string; // For notes
 }
 
 export interface TacticalLine {

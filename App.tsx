@@ -133,7 +133,8 @@ function App() {
       type,
       pos: { x: 50, y: 50 }, // Center
       rotation: 0,
-      label: type === ItemType.PLAYER_HOME ? '1' : type === ItemType.PLAYER_AWAY ? '1' : undefined
+      label: type === ItemType.PLAYER_HOME ? '1' : type === ItemType.PLAYER_AWAY ? '1' : undefined,
+      text: type === ItemType.NOTE ? '' : undefined
     };
     
     // State update
